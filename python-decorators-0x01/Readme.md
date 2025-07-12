@@ -1,4 +1,3 @@
-```markdown
 # Python Generators - `python-generators-0x00`
 
 This project explores the use of **Python generators** to efficiently handle large data sets and streaming operations. By working with real-world data (CSV files), you'll build generator functions that simulate data pipelines, lazy pagination, batching, and streaming.
