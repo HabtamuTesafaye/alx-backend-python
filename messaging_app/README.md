@@ -161,3 +161,72 @@ python manage.py test
 ```
 
 ---
+
+---
+
+### Accessing the API via Browsable Interface (Session Auth)
+
+1. Open your browser and go to your API root, e.g.,
+   `http://127.0.0.1:8000/api/`
+
+2. You should see the **DRF browsable API interface** with a **Login** button on the top right.
+
+3. Click **Login** and enter your user credentials (created via `createsuperuser` or your app's users).
+
+4. Once logged in, you can interact with the API endpoints using the browser — GET, POST, etc. — with session-based authentication automatically applied.
+
+---
+
+### Accessing the API Programmatically (JWT Token Auth)
+
+1. Obtain a JWT token by sending a POST request to:
+   `http://127.0.0.1:8000/api/token/`
+   with JSON payload:
+
+   ```json
+   {
+     "email": "your_email@example.com",
+     "password": "your_password"
+   }
+   ```
+
+2. You will receive a response like:
+
+   ```json
+   {
+     "refresh": "your_refresh_token_here",
+     "access": "your_access_token_here"
+   }
+   ```
+
+3. Use the `access` token to authorize subsequent API requests by adding this HTTP header:
+
+   ```
+   Authorization: Bearer your_access_token_here
+   ```
+
+4. Example with `curl` to list conversations:
+
+   ```bash
+   curl -H "Authorization: Bearer your_access_token_here" http://127.0.0.1:8000/api/conversations/
+   ```
+
+---
+
+### Summary
+
+| Access Method          | How to Access                                                          | Authentication Used              |
+| ---------------------- | ---------------------------------------------------------------------- | -------------------------------- |
+| **Browser / UI**       | Visit `/api/` and login                                                | Session Authentication (cookies) |
+| **Programmatic (API)** | Use `/api/token/` to get JWT token and pass it in Authorization header | JWT Token Authentication         |
+
+---
+
+If you’re seeing errors, make sure:
+
+* You have users created with correct credentials.
+* Your URLs include both `api-auth/` and JWT token endpoints.
+* Your `REST_FRAMEWORK` settings include `SessionAuthentication` and `JWTAuthentication`.
+
+---
+
