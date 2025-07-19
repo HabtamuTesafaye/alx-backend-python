@@ -160,9 +160,6 @@ Run the Django test suite:
 python manage.py test
 ```
 
----
-
----
 
 ### Accessing the API via Browsable Interface (Session Auth)
 
