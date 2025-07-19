@@ -14,12 +14,11 @@ class ConversationTests(APITestCase):
         self.client.force_authenticate(user=self.user1)
 
     def test_create_conversation(self):
-        url = reverse('conversation-list')
+        url = reverse('conversation-list')  # Use 'conversation-list'
         data = {'participants': [str(self.user1.user_id), str(self.user2.user_id)]}
         response = self.client.post(url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(len(response.data['participants']), 2)
-
 
 class MessageTests(APITestCase):
     def setUp(self):
@@ -27,14 +26,11 @@ class MessageTests(APITestCase):
             email='user1@example.com', password='pass1234', first_name='User', last_name='One', role='guest'
         )
         self.conversation = Conversation.objects.create()
-
-        # Create ConversationParticipant entries (not direct set on conversation.participants)
         ConversationParticipant.objects.create(conversation=self.conversation, user=self.user1)
-
         self.client.force_authenticate(user=self.user1)
 
     def test_send_message(self):
-        url = reverse('message-list')
+        url = reverse('conversation-message-list', kwargs={'conversation_pk': str(self.conversation.conversation_id)})  # Use 'conversation-message-list'
         data = {
             'conversation': str(self.conversation.conversation_id),
             'message_body': 'Hello, this is a test message'
