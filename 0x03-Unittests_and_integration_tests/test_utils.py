@@ -27,7 +27,10 @@ class TestAccessNestedMap(unittest.TestCase):
         """Test access_nested_map raises KeyError for missing keys."""
         with self.assertRaises(KeyError) as cm:
             access_nested_map(nested_map, path)
-        self.assertEqual(str(cm.exception), f"'{expected_key}'")
+        self.assertEqual(
+            str(cm.exception),
+            f"'{expected_key}'"
+        )
 
 
 class TestGetJson(unittest.TestCase):
