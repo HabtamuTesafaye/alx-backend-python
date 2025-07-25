@@ -1,6 +1,9 @@
-from rest_framework.permissions import BasePermission, SAFE_METHODS
+from rest_framework import permissions
 
-class IsParticipantOfConversation(BasePermission):
+# Re-export IsAuthenticated so it can be imported from this file too
+IsAuthenticated = permissions.IsAuthenticated
+
+class IsParticipantOfConversation(permissions.BasePermission):
     """
     Only participants of the conversation can view, modify, or send messages.
     """
