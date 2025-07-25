@@ -1,6 +1,6 @@
 from rest_framework import viewsets, filters, status
 from rest_framework.response import Response
-from rest_framework.exceptions import PermissionDenied
+from rest_framework.exceptions import APIException
 from .permissions import IsAuthenticated, IsParticipantOfConversation
 from .models import Conversation, Message
 from .serializers import (
@@ -9,6 +9,13 @@ from .serializers import (
 )
 from .filters import MessageFilter
 from .pagination import MessagePagination
+
+
+class ForbiddenAccess(APIException):
+    status_code = status.HTTP_403_FORBIDDEN
+    default_detail = "You are not a participant of this conversation."
+    default_code = "permission_denied"
+
 
 class ConversationViewSet(viewsets.ModelViewSet):
     queryset = Conversation.objects.all()
@@ -22,6 +29,7 @@ class ConversationViewSet(viewsets.ModelViewSet):
             return ConversationCreateSerializer
         return ConversationSerializer
 
+
 class MessageViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated, IsParticipantOfConversation]
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]
@@ -31,7 +39,6 @@ class MessageViewSet(viewsets.ModelViewSet):
     pagination_class = MessagePagination
 
     def get_queryset(self):
-        # Ensure users can only access messages in conversations they are part of
         conversation_id = self.request.query_params.get('conversation_id')
         user = self.request.user
 
@@ -42,11 +49,11 @@ class MessageViewSet(viewsets.ModelViewSet):
                 return Message.objects.none()
 
             if user not in conversation.participants.all():
-                raise PermissionDenied("You are not a participant of this conversation.")
+                raise ForbiddenAccess()
 
             return Message.objects.filter(conversation=conversation)
 
-        # Optionally restrict to all user messages
+        # fallback: all messages from conversations user participates in
         return Message.objects.filter(conversation__participants=user)
 
     def get_serializer_class(self):
