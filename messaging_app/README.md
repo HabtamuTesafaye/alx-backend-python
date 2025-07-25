@@ -43,7 +43,7 @@ This project implements a messaging system backend API that allows users to crea
 ```bash
 # Clone the repo
 git clone https://github.com/yourusername/messaging_api.git
-cd messaging_api
+cd messaging_app
 
 # Create virtual environment
 python -m venv venv
