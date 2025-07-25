@@ -128,10 +128,11 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # REST Framework defaults (optional)
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
-        'rest_framework.authentication.BasicAuthentication',    
+        'rest_framework.authentication.BasicAuthentication'    
         'rest_framework.authentication.SessionAuthentication',         # enables login via /admin or /login
         'rest_framework.authentication.TokenAuthentication',           # for token auth (optional)
         'chats.auth.CustomJWTAuthentication',
+         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ],
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.IsAuthenticated',
