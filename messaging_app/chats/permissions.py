@@ -10,10 +10,22 @@ class IsParticipantOfConversation(permissions.BasePermission):
 
     def has_object_permission(self, request, view, obj):
         user = request.user
-        if hasattr(obj, 'participants'):
-            return user in obj.participants.all()
-        if hasattr(obj, 'conversation'):
-            return user in obj.conversation.participants.all()
+
+        # Allow read-only methods if user is a participant
+        if request.method in permissions.SAFE_METHODS:
+            if hasattr(obj, 'participants'):
+                return user in obj.participants.all()
+            if hasattr(obj, 'conversation'):
+                return user in obj.conversation.participants.all()
+            return False
+
+        # For PUT, PATCH, DELETE — enforce stricter check
+        if request.method in ["PUT", "PATCH", "DELETE"]:
+            if hasattr(obj, 'conversation'):
+                return user in obj.conversation.participants.all()
+            if hasattr(obj, 'participants'):
+                return user in obj.participants.all()
+
         return False
 
     def has_permission(self, request, view):
