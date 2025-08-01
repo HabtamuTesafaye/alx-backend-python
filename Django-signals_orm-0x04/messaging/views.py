@@ -39,3 +39,25 @@ def unread_messages_list(request):
     ]
 
     return JsonResponse({"unread_messages": messages_data})
+
+@login_required
+def threaded_messages_view(request):
+    # Example: get top-level messages where sender is the current user
+    top_level_messages = Message.objects.filter(
+        sender=request.user,
+        parent_message__isnull=True
+    ).select_related('sender', 'receiver').prefetch_related('replies__sender')
+
+    def serialize_message(msg):
+        return {
+            "id": msg.id,
+            "content": msg.content,
+            "sender": msg.sender.email,
+            "receiver": msg.receiver.email,
+            "timestamp": msg.timestamp.isoformat(),
+            "replies": [serialize_message(reply) for reply in msg.replies.all()]
+        }
+
+    data = [serialize_message(msg) for msg in top_level_messages]
+
+    return JsonResponse({"messages": data})

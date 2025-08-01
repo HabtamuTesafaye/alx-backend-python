@@ -10,9 +10,17 @@ class Message(models.Model):
     timestamp = models.DateTimeField(auto_now_add=True)
     edited = models.BooleanField(default=False)  # Tracks edits
     unread = models.BooleanField(default=True)
+    # parent_message: self-referential FK for threaded replies
+    parent_message = models.ForeignKey(
+        'self',
+        null=True,
+        blank=True,
+        related_name='replies',
+        on_delete=models.CASCADE
+    )
     # default manager
     objects = models.Manager()
-    # custom manager
+    # custom manager (assuming you have it)
     unread_messages = UnreadMessagesManager()
     edited_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
