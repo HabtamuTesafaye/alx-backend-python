@@ -7,9 +7,17 @@ class Message(models.Model):
     content = models.TextField()
     timestamp = models.DateTimeField(auto_now_add=True)
     edited = models.BooleanField(default=False)  # Tracks edits
+    edited_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        null=True,
+        blank=True,
+        related_name='edited_messages',
+        on_delete=models.SET_NULL
+    )  # Track who last edited the message
 
     def __str__(self):
         return f"From {self.sender} to {self.receiver}"
+
 
 class MessageHistory(models.Model):
     message = models.ForeignKey(Message, related_name='history', on_delete=models.CASCADE)
