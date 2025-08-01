@@ -16,7 +16,7 @@ def delete_user(request):
 def unread_messages_list(request):
     user = request.user
     unread_messages = (
-        Message.unread.unread_for_user(user)
+        Message.objects.filter(receiver=user, read=False)
         .only('id', 'content', 'timestamp', 'sender_id')
         .select_related('sender')
     )
@@ -32,3 +32,4 @@ def unread_messages_list(request):
     ]
 
     return JsonResponse({"unread_messages": messages_data})
+
