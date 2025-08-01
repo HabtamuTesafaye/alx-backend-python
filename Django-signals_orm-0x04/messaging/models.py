@@ -1,5 +1,7 @@
 from django.db import models
 from django.conf import settings
+from .managers import UnreadMessagesManager
+
 
 class Message(models.Model):
     sender = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='sent_messages', on_delete=models.CASCADE)
@@ -7,6 +9,11 @@ class Message(models.Model):
     content = models.TextField()
     timestamp = models.DateTimeField(auto_now_add=True)
     edited = models.BooleanField(default=False)  # Tracks edits
+    unread = models.BooleanField(default=True)
+    # default manager
+    objects = models.Manager()
+    # custom manager
+    unread_messages = UnreadMessagesManager()
     edited_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         null=True,
