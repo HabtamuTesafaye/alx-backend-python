@@ -1,7 +1,8 @@
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import get_user_model
 from django.http import HttpResponse, JsonResponse
-from .models import Message  # adjust import as needed
+from django.views.decorators.cache import cache_page 
+from .models import Message
 
 User = get_user_model()
 
@@ -16,18 +17,14 @@ def delete_user(request):
 def unread_messages_list(request):
     user = request.user
 
-    # Get unread messages via custom manager method
     unread_via_manager = Message.unread.unread_for_user(user)
 
-    # Get unread messages via standard filter with only() and select_related()
     unread_direct = Message.objects.filter(receiver=user, read=False)\
         .only('id', 'content', 'timestamp', 'sender_id')\
         .select_related('sender')
 
-    # Combine both querysets using union (to avoid duplicates)
     combined_unread = unread_via_manager.union(unread_direct)
 
-    # Serialize combined queryset
     messages_data = [
         {
             "id": msg.id,
@@ -40,9 +37,10 @@ def unread_messages_list(request):
 
     return JsonResponse({"unread_messages": messages_data})
 
+
+@cache_page(60)  
 @login_required
 def threaded_messages_view(request):
-    # Example: get top-level messages where sender is the current user
     top_level_messages = Message.objects.filter(
         sender=request.user,
         parent_message__isnull=True
