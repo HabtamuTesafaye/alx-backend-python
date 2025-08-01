@@ -1,8 +1,6 @@
 from django.contrib.auth.decorators import login_required
-from django.shortcuts import redirect
 from django.contrib.auth import get_user_model
-from django.http import HttpResponse
-from django.http import JsonResponse
+from django.http import HttpResponse, JsonResponse
 from .models import Message  # adjust import as needed
 
 User = get_user_model()
@@ -17,8 +15,11 @@ def delete_user(request):
 @login_required
 def unread_messages_list(request):
     user = request.user
-    # Use custom manager, then chain .only() and .select_related() to optimize query
-    unread_messages = Message.unread.unread_for_user(user).only('id', 'content', 'timestamp', 'sender_id').select_related('sender')
+    unread_messages = (
+        Message.unread.unread_for_user(user)
+        .only('id', 'content', 'timestamp', 'sender_id')
+        .select_related('sender')
+    )
 
     messages_data = [
         {
