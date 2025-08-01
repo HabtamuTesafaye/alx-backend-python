@@ -14,14 +14,12 @@ def delete_user(request):
     return HttpResponse("User and related data deleted successfully.")
 
 
-
 @login_required
 def unread_messages_list(request):
     user = request.user
-    # Get unread messages using the custom manager method, optimized with only/select_related inside the manager
-    unread_messages = Message.unread.unread_for_user(user)
+    # Use custom manager, then chain .only() and .select_related() to optimize query
+    unread_messages = Message.unread.unread_for_user(user).only('id', 'content', 'timestamp', 'sender_id').select_related('sender')
 
-    # Prepare data for JSON response (example: message id, content, sender email, timestamp)
     messages_data = [
         {
             "id": msg.id,
