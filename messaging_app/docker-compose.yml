@@ -5,7 +5,7 @@ services:
       - .env
     environment:
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
-      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_DATABASE: ${MYSQL_DB}
       MYSQL_USER: ${MYSQL_USER}
       MYSQL_PASSWORD: ${MYSQL_PASSWORD}
     volumes:
@@ -16,10 +16,10 @@ services:
   web:
     build:
       context: .
-      dockerfile: messaging_app/Dockerfile
-    command: python manage.py runserver 0.0.0.0:8000
+      dockerfile: Dockerfile
+    command: python3 manage.py runserver 0.0.0.0:8000
     volumes:
-      - ./messaging_app:/app
+      - ./:/app
     ports:
       - "8000:8000"
     depends_on:
