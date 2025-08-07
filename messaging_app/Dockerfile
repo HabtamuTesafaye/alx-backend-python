@@ -31,5 +31,8 @@ COPY . .
 RUN useradd -m django_user
 USER django_user
 
+# Expose the port Django uses
+EXPOSE 8000
 
+# Command to run the Django development server
 CMD ["python", "manage.py", "runserver", "-p", "8000", "0.0.0.0"]
