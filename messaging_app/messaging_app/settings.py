@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-l_77kik+@=63^j3*#fp(2l@o*n@&9&$u++m+a5*5a0vs46k%ux
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['0.0.0.0', 'localhost', '127.0.0.1']
 
 
 # Application definition
@@ -76,11 +76,14 @@ WSGI_APPLICATION = 'messaging_app.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'messagingdb',
+        'USER': 'messaginguser',
+        'PASSWORD': 'securepass',
+        'HOST': 'db',          # Docker Compose service name
+        'PORT': '3306',
     }
 }
-
 
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
@@ -128,7 +131,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # REST Framework defaults (optional)
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
-        'rest_framework.authentication.BasicAuthentication'    
+        'rest_framework.authentication.BasicAuthentication',    
         'rest_framework.authentication.SessionAuthentication',         # enables login via /admin or /login
         'rest_framework.authentication.TokenAuthentication',           # for token auth (optional)
         'chats.auth.CustomJWTAuthentication',

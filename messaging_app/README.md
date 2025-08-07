@@ -40,6 +40,21 @@ This project implements a messaging system backend API that allows users to crea
 
 ### Steps
 
+## Setup and Installation
+
+You can run the project either **locally using a Python virtual environment (venv)** or **inside Docker containers**.
+
+---
+
+### Option 1: Local Setup (venv)
+
+#### Prerequisites
+
+* Python 3.11+ installed
+* `venv` for virtual environments
+
+#### Steps
+
 ```bash
 # Clone the repo
 git clone https://github.com/yourusername/messaging_api.git
@@ -57,6 +72,9 @@ source venv/bin/activate
 # Install dependencies
 pip install -r requirements.txt
 
+# Configure environment variables if needed (optional)
+# For example, create a `.env` file
+
 # Apply migrations
 python manage.py migrate
 
@@ -65,6 +83,44 @@ python manage.py createsuperuser
 
 # Run development server
 python manage.py runserver
+```
+
+---
+
+### Option 2: Docker Setup
+
+#### Prerequisites
+
+* Docker installed ([Get Docker](https://docs.docker.com/get-docker/))
+* Docker Compose installed
+* A `.env` file placed one directory above the project root with content similar to:
+
+```env
+MYSQL_ROOT_PASSWORD=your_root_password
+MYSQL_DATABASE=messagingdb
+MYSQL_USER=your_db_user
+MYSQL_PASSWORD=your_db_password
+DJANGO_SECRET_KEY=your_django_secret_key
+DJANGO_ALLOWED_HOSTS=localhost,127.0.0.1,0.0.0.0
+```
+
+#### Steps
+
+```bash
+# Clone the repo
+git clone https://github.com/yourusername/messaging_api.git
+cd messaging_api
+
+# Build and start containers (adjust path to .env if needed)
+docker compose --env-file ../.env up --build
+
+# Run migrations inside the Django container
+docker compose exec web python manage.py migrate
+
+# (Optional) Create superuser inside the container
+docker compose exec web python manage.py createsuperuser
+
+# Access the app at http://localhost:8000/
 ```
 
 ---
@@ -226,4 +282,45 @@ If you’re seeing errors, make sure:
 * Your `REST_FRAMEWORK` settings include `SessionAuthentication` and `JWTAuthentication`.
 
 ---
+
+
+Got it! Here's your README updated to **clearly show two setup options side-by-side** — using either **venv (local Python environment)** or **Docker** — so users can pick whichever suits them.
+
+---
+
+# Messaging API
+
+A robust and scalable RESTful API built with Django and Django REST Framework for managing user messaging conversations and messages. This project demonstrates best practices in API development including model design, serializers, viewsets, and clean URL routing.
+
+---
+
+## Overview
+
+This project implements a messaging system backend API that allows users to create conversations, send messages, and manage user roles and profiles. It follows Django's best practices for project structure and RESTful API design.
+
+---
+
+## Features
+
+* User management with roles (`guest`, `host`, `admin`)
+* Conversations with multiple participants
+* Sending and retrieving messages within conversations
+* UUID primary keys for all models
+* Timestamp fields with automatic creation times
+* Nested serialization for conversations including messages
+
+---
+
+## Tech Stack
+
+* Python 3.11+
+* Django 5.2.4
+* Django REST Framework
+* MySQL 8 (configurable; SQLite default for local dev)
+* Docker & Docker Compose (optional)
+* `django-environ` for environment variables
+
+---
+
+
 
