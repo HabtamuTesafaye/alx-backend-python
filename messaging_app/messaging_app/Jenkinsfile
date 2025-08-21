@@ -1,38 +1,59 @@
 pipeline {
     agent any
+
     environment {
-        GITHUB_CREDENTIALS = credentials('github-credentials')
+        GITHUB_CREDENTIALS     = credentials('github-credentials')   // GitHub PAT
+        DOCKER_HUB_CREDENTIALS = credentials('dockerhub-credentials') // Docker Hub PAT
+        DOCKER_IMAGE           = "habtamutes/messaging_app:latest"
     }
+
     stages {
         stage('Checkout') {
             steps {
                 git branch: 'main',
-                    credentialsId: "${GITHUB_CREDENTIALS}",
-                    url: 'https://github.com/alx-backend-python/messaging_app.git'
+                    url: 'https://github.com/alx-backend-python/messaging_app.git',
+                    credentialsId: "${GITHUB_CREDENTIALS}"
             }
         }
-        stage('Install Dependencies & Run Tests') {
+
+        stage('Install Dependencies') {
             steps {
                 sh '''
-                  python3 -m venv venv
-                  . venv/bin/activate
-                  pip install --upgrade pip
-                  pip install -r requirements.txt
-                  pytest --maxfail=1 --disable-warnings -q --junitxml=report.xml
+                  pip3 install --upgrade pip
+                  pip3 install -r messaging_app/requirements.txt
                 '''
             }
-            post { always { junit 'report.xml' } }
         }
+
+        stage('Run Tests') {
+            steps {
+                sh '''
+                  mkdir -p messaging_app/reports
+                  cd messaging_app
+                  pytest --maxfail=1 --disable-warnings -q --junitxml=reports/results.xml
+                '''
+            }
+            post {
+                always {
+                    junit 'messaging_app/reports/results.xml'
+                }
+            }
+        }
+
         stage('Build Docker Image') {
-            environment {
-                DOCKER_HUB_CREDENTIALS = credentials('dockerhub-credentials')
-            }
             steps {
-                sh '''
-                  docker build -t ${DOCKER_HUB_CREDENTIALS_USR}/messaging_app:latest .
-                  echo $DOCKER_HUB_CREDENTIALS_PSW | docker login -u $DOCKER_HUB_CREDENTIALS_USR --password-stdin
-                  docker push ${DOCKER_HUB_CREDENTIALS_USR}/messaging_app:latest
-                '''
+                sh "docker build -t ${DOCKER_IMAGE} messaging_app"
+            }
+        }
+
+        stage('Push Docker Image') {
+            steps {
+                withCredentials([string(credentialsId: 'dockerhub-credentials', variable: 'DOCKER_TOKEN')]) {
+                    sh '''
+                    echo "$DOCKER_TOKEN" | docker login -u "your-dockerhub-username" --password-stdin
+                    docker push ${DOCKER_IMAGE}
+                    '''
+                }
             }
         }
     }
