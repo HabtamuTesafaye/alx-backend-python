@@ -20,7 +20,7 @@ pipeline {
             steps {
                 sh '''
                   pip3 install --upgrade pip
-                  pip3 install -r messaging_app/requirements.txt
+                  pip3 install -r requirements.txt
                 '''
             }
         }
@@ -28,14 +28,14 @@ pipeline {
         stage('Run Tests') {
             steps {
                 sh '''
-                  mkdir -p messaging_app/reports
+                  mkdir -p reports
                   cd messaging_app
                   pytest --maxfail=1 --disable-warnings -q --junitxml=reports/results.xml
                 '''
             }
             post {
                 always {
-                    junit 'messaging_app/reports/results.xml'
+                    junit 'reports/results.xml'
                 }
             }
         }

@@ -1,3 +1,4 @@
+
 # Messaging API
 
 A robust and scalable RESTful API built with Django and Django REST Framework for managing user messaging conversations and messages. This project demonstrates best practices in API development including model design, serializers, viewsets, and clean URL routing.
@@ -24,36 +25,23 @@ This project implements a messaging system backend API that allows users to crea
 ## Tech Stack
 
 * Python 3.11+
-* Django 4.x
+* Django 5.x
 * Django REST Framework
-* SQLite (default, configurable to other databases)
-* `django-environ` for environment variables (optional)
+* MySQL 8 (configurable; SQLite default for local dev)
+* Docker & Docker Compose
+* Jenkins (for CI/CD)
+* GitHub Actions (CI/CD)
+* `django-environ` for environment variables
 
 ---
 
 ## Setup and Installation
 
-### Prerequisites
-
-* Python 3.11+ installed
-* `venv` for virtual environments
-
-### Steps
-
-## Setup and Installation
-
-You can run the project either **locally using a Python virtual environment (venv)** or **inside Docker containers**.
+You can run the project either **locally using Python virtual environment (venv)** or **inside Docker containers**.
 
 ---
 
 ### Option 1: Local Setup (venv)
-
-#### Prerequisites
-
-* Python 3.11+ installed
-* `venv` for virtual environments
-
-#### Steps
 
 ```bash
 # Clone the repo
@@ -71,9 +59,6 @@ source venv/bin/activate
 
 # Install dependencies
 pip install -r requirements.txt
-
-# Configure environment variables if needed (optional)
-# For example, create a `.env` file
 
 # Apply migrations
 python manage.py migrate
@@ -93,7 +78,7 @@ python manage.py runserver
 
 * Docker installed ([Get Docker](https://docs.docker.com/get-docker/))
 * Docker Compose installed
-* A `.env` file placed one directory above the project root with content similar to:
+* A `.env` file placed one directory above the project root with content like:
 
 ```env
 MYSQL_ROOT_PASSWORD=your_root_password
@@ -111,7 +96,7 @@ DJANGO_ALLOWED_HOSTS=localhost,127.0.0.1,0.0.0.0
 git clone https://github.com/yourusername/messaging_api.git
 cd messaging_api
 
-# Build and start containers (adjust path to .env if needed)
+# Build and start containers
 docker compose --env-file ../.env up --build
 
 # Run migrations inside the Django container
@@ -146,10 +131,63 @@ messaging_app/
 │   ├── urls.py
 │   └── wsgi.py
 ├── manage.py
-└── requirements.txt
+├── requirements.txt
+├── Jenkinsfile
+└── .github/workflows/
+    ├── ci.yml
+    └── dep.yml
 ```
 
 ---
+
+## CI/CD with Jenkins
+
+The project includes a **Jenkins pipeline** to automate testing, Docker builds, and deployment.
+
+### Jenkins Setup
+
+```bash
+docker run -d --name jenkins -p 8081:8080 -p 50000:50000 \
+  -v jenkins_home:/var/jenkins_home \
+  -v /var/run/docker.sock:/var/run/docker.sock \
+  jenkins/jenkins:lts
+```
+
+* **Access Dashboard:** `http://localhost:8081`
+* **Install Plugins:** Git, Pipeline, ShiningPanda
+* **Add Credentials:** GitHub personal access token, Docker Hub access token
+
+### Pipeline Stages
+
+1. **Checkout:** Pulls code from GitHub using credentials.
+2. **Install Dependencies:** Installs Python packages from `requirements.txt`.
+3. **Run Tests:** Executes `pytest` and generates JUnit reports.
+4. **Build Docker Image:** Builds the messaging app Docker image.
+5. **Push Docker Image:** Pushes the image to Docker Hub using personal access token.
+
+---
+
+## CI/CD with GitHub Actions
+
+The project includes **GitHub Actions workflows** to automate testing and Docker deployment.
+
+### `ci.yml` Workflow
+
+* Runs on **push** and **pull request** events
+* Installs dependencies
+* Sets up MySQL service
+* Runs `pytest`
+* Runs `flake8` for linting
+* Generates and uploads test coverage reports
+
+### `dep.yml` Workflow
+
+* Builds Docker image for the messaging app
+* Pushes the image to Docker Hub using GitHub secrets for authentication
+
+---
+
+![Jenkins + GitHub Actions + Docker flow Architecture](assets/pipline.png)
 
 ## Models
 
@@ -164,34 +202,16 @@ messaging_app/
 ### Conversation
 
 * UUID primary key (`conversation_id`)
-* `participants` (many-to-many relationship with `User`)
+* `participants` (many-to-many with User)
 * `created_at` timestamp
 
 ### Message
 
 * UUID primary key (`message_id`)
-* `sender` (foreign key to `User`)
-* `conversation` (foreign key to `Conversation`)
+* `sender` (foreign key to User)
+* `conversation` (foreign key to Conversation)
 * `message_body` (text)
 * `sent_at` timestamp
-
----
-
-## Serializers
-
-* **UserSerializer:** Serializes user details, used nested inside other serializers.
-* **ConversationSerializer:** Serializes conversations including nested participant users and nested messages.
-* **ConversationCreateSerializer:** Used when creating or updating conversations; accepts participant IDs to establish many-to-many relationships.
-* **MessageSerializer:** Serializes messages including sender details.
-* **MessageCreateSerializer:** Used to create or update messages.
-
----
-
-## Views (Viewsets)
-
-* **ConversationViewSet:** Handles CRUD operations on conversations. Uses different serializers for listing (`ConversationSerializer`) and creating/updating (`ConversationCreateSerializer`).
-* **MessageViewSet:** Handles CRUD operations on messages. Uses different serializers for listing (`MessageSerializer`) and creating/updating (`MessageCreateSerializer`).
-* Both viewsets use `AllowAny` permissions for simplicity but can be customized for authentication.
 
 ---
 
@@ -210,63 +230,17 @@ messaging_app/
 
 ## Testing
 
-Run the Django test suite:
-
 ```bash
+# Local tests
 python manage.py test
+
+# Jenkins/GitHub Actions automatically run tests in CI
 ```
 
-
-### Accessing the API via Browsable Interface (Session Auth)
-
-1. Open your browser and go to your API root, e.g.,
-   `http://127.0.0.1:8000/api/`
-
-2. You should see the **DRF browsable API interface** with a **Login** button on the top right.
-
-3. Click **Login** and enter your user credentials (created via `createsuperuser` or your app's users).
-
-4. Once logged in, you can interact with the API endpoints using the browser — GET, POST, etc. — with session-based authentication automatically applied.
-
 ---
 
-### Accessing the API Programmatically (JWT Token Auth)
+## Accessing the API
 
-1. Obtain a JWT token by sending a POST request to:
-   `http://127.0.0.1:8000/api/token/`
-   with JSON payload:
-
-   ```json
-   {
-     "email": "your_email@example.com",
-     "password": "your_password"
-   }
-   ```
-
-2. You will receive a response like:
-
-   ```json
-   {
-     "refresh": "your_refresh_token_here",
-     "access": "your_access_token_here"
-   }
-   ```
-
-3. Use the `access` token to authorize subsequent API requests by adding this HTTP header:
-
-   ```
-   Authorization: Bearer your_access_token_here
-   ```
-
-4. Example with `curl` to list conversations:
-
-   ```bash
-   curl -H "Authorization: Bearer your_access_token_here" http://127.0.0.1:8000/api/conversations/
-   ```
-
----
-
-### Summary
 
 | Access Method          | How to Access                                                          | Authentication Used              |
 | ---------------------- | ---------------------------------------------------------------------- | -------------------------------- |
@@ -282,45 +256,14 @@ If you’re seeing errors, make sure:
 * Your `REST_FRAMEWORK` settings include `SessionAuthentication` and `JWTAuthentication`.
 
 ---
-
-
-Got it! Here's your README updated to **clearly show two setup options side-by-side** — using either **venv (local Python environment)** or **Docker** — so users can pick whichever suits them.
-
----
-
-# Messaging API
-
-A robust and scalable RESTful API built with Django and Django REST Framework for managing user messaging conversations and messages. This project demonstrates best practices in API development including model design, serializers, viewsets, and clean URL routing.
+```bash
+curl -H "Authorization: Bearer <your_access_token>" http://127.0.0.1:8000/api/conversations/
+```
 
 ---
 
-## Overview
-
-This project implements a messaging system backend API that allows users to create conversations, send messages, and manage user roles and profiles. It follows Django's best practices for project structure and RESTful API design.
+This README now documents **local setup, Docker setup, Jenkins CI/CD, and GitHub Actions CI/CD** all in one place.
 
 ---
-
-## Features
-
-* User management with roles (`guest`, `host`, `admin`)
-* Conversations with multiple participants
-* Sending and retrieving messages within conversations
-* UUID primary keys for all models
-* Timestamp fields with automatic creation times
-* Nested serialization for conversations including messages
-
----
-
-## Tech Stack
-
-* Python 3.11+
-* Django 5.2.4
-* Django REST Framework
-* MySQL 8 (configurable; SQLite default for local dev)
-* Docker & Docker Compose (optional)
-* `django-environ` for environment variables
-
----
-
 
 
